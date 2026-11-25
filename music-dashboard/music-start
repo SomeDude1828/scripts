@@ -1,0 +1,67 @@
+
+#!/usr/bin/env bash
+set -euo pipefail
+
+HYPR=/usr/bin/hyprctl
+JQ=/usr/bin/jq
+
+launch() {
+    local title="$1" command="$2" width="$3" height="$4" x="$5" y="$6"
+    local address=""
+
+    kitty --class music-dashboard --title "$title" bash -lc "$command" &
+
+    for _ in $(seq 1 100); do
+        address=$("$HYPR" clients -j | "$JQ" -r --arg t "$title" \
+            '[.[] | select(.class == "music-dashboard" and .title == $t)] | last | .address // empty')
+        [[ -n "$address" ]] && break
+        sleep 0.2
+    done
+
+    if [[ -z "$address" ]]; then
+        echo "ERROR: Could not find window '$title'" >&2
+        return 1
+    fi
+
+    "$HYPR" eval "hl.dispatch(hl.dsp.window.float({ action = 'on', window = 'address:$address' })); hl.dispatch(hl.dsp.window.resize({ x = $width, y = $height, window = 'address:$address' })); hl.dispatch(hl.dsp.window.move({ x = $x, y = $y, relative = false, window = 'address:$address' }))" >/dev/null
+
+    echo "Positioned $title at $x,$y ($width x $height)"
+}
+
+WORKSPACE="${1:-e+1}"
+
+case "$WORKSPACE" in
+    c) WORKSPACE="special:communication" ;;
+    m) WORKSPACE="special:music" ;;
+    d) WORKSPACE="special:*" ;;
+    r) WORKSPACE="special:todo" ;;
+esac
+
+"$HYPR" eval "hl.dispatch(hl.dsp.focus({ workspace = '$WORKSPACE' }))" >/dev/null
+
+# Start MPD only when it isn't already running.
+if ! pgrep -x mpd >/dev/null; then
+    mpd
+    sleep 1
+fi
+
+# Start the MPD-to-MPRIS bridge if it isn't already running.
+if ! pgrep -x mpd-mpris >/dev/null; then
+    mpd-mpris >/dev/null 2>&1 &
+    sleep 1
+fi
+
+launch music-cava "cava" 697 393 62 12
+launch music-lyrics "lyrics --player mpd --color-source 'fixed:#00ff00'" 752 381 62 409
+launch music-lavat "lavat -c green" 752 417 62 794
+launch music-unimatrix "unimatrix" 748 329 763 2
+launch music-clock "tty-clock -c -s -b" 693 221 818 335
+launch music-ncmpcpp "ncmpcpp" 1090 628 818 560
+
+# Pipes in the upper-right corner.
+launch music-pipes "pipes.sh -c 2" 393 554 1515 2
+
+# Tiny terminal to patch the gap between the dashboard windows.
+launch music-patch "fish" 51 70 763 335
+
+echo "Music dashboard launched."

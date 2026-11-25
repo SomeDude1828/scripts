@@ -1,0 +1,23 @@
+
+#!/usr/bin/env bash
+set -euo pipefail
+
+HYPR=/usr/bin/hyprctl
+JQ=/usr/bin/jq
+
+# Get PIDs belonging to our dashboard windows only.
+pids=$("$HYPR" clients -j | "$JQ" -r '
+    .[] | select(.class == "music-dashboard") | .pid
+' | sort -u)
+
+if [[ -z "$pids" ]]; then
+    echo "No music dashboard windows found."
+    exit 0
+fi
+
+while IFS= read -r pid; do
+    [[ "$pid" =~ ^[0-9]+$ ]] || continue
+    kill -KILL "$pid" 2>/dev/null || true
+done <<< "$pids"
+
+echo "Music dashboard closed."

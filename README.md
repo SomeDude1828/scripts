@@ -13,6 +13,9 @@ Automatically deletes files older than seven days from your Downloads directory 
 ### [power-ac-watcher](power-ac-watcher/)
 Automatically adjusts power settings when the laptop is plugged in or unplugged. Switches power profiles and toggles Caelestia's idle inhibitor.
 
+### [music-dashboard](music-dashboard/)
+A terminal-based music dashboard for Hyprland, using MPD, Kitty and terminal visualizers. Includes scripts to launch and close the dashboard.
+
 ## Requirements
 
 These scripts target Linux systems. Individual dependencies and installation instructions are documented in each script's folder.
