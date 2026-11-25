@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+DOWNLOADS="$(xdg-user-dir DOWNLOAD)"
+
+find "$DOWNLOADS" -type f -mtime +7 -delete
+find "$DOWNLOADS" -depth -mindepth 1 -type d -empty -delete

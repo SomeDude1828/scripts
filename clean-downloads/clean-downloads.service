@@ -1,0 +1,6 @@
+[Unit]
+Description=Clean old Downloads files
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/clean-downloads

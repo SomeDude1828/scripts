@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+AC_STATE=""
+
+apply_power_state() {
+    local online
+    online=$(< /sys/class/power_supply/AC/online)
+
+    # Ignore duplicate events; manual changes are left alone.
+    [[ "$online" == "$AC_STATE" ]] && return
+
+    if [[ "$online" == "1" ]]; then
+        echo "AC connected: balanced + idle inhibitor enabled"
+        powerprofilesctl set balanced
+        caelestia shell idleInhibitor enable
+    else
+        echo "AC disconnected: power-saver + idle inhibitor disabled"
+        powerprofilesctl set power-saver
+        caelestia shell idleInhibitor disable
+    fi
+
+    AC_STATE="$online"
+}
+
+# Apply the current state once at startup.
+apply_power_state
+
+# React only to events from the AC adapter, not the battery.
+while IFS= read -r line; do
+    case "$line" in
+        DEVPATH=*/power_supply/AC)
+            apply_power_state
+            ;;
+    esac
+done < <(udevadm monitor --kernel --property --subsystem-match=power_supply)

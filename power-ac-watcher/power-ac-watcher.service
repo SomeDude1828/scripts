@@ -1,0 +1,11 @@
+[Unit]
+Description=Automatically adjust power settings when AC changes
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/power-ac-watcher
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target
