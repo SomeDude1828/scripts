@@ -65,6 +65,7 @@ Optional workspace arguments:
 | `m` | Music |
 | `d` | Any special workspace |
 | `r` | Todo |
+| `2` | WS2 |
 
 For example:
 
